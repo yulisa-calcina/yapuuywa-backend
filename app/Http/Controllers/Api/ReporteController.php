@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Animal;
 use App\Models\Venta;
 use App\Models\Gasto;
+use App\Models\Insumo;
+use App\Models\HistorialMedico;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
@@ -35,12 +37,115 @@ class ReporteController extends Controller
 
     public function historial(Request $request)
     {
-        return response()->json(['success' => true, 'message' => 'Próximamente']);
+        $userId   = $request->user()->id;
+        $animales = Animal::where('user_id', $userId)->orderBy('nombre')->get();
+
+        $filas = '';
+        foreach ($animales as $animal) {
+            $historiales = HistorialMedico::where('animal_id', $animal->id)->orderBy('fecha','desc')->get();
+            foreach ($historiales as $h) {
+                $filas .= "
+                <tr>
+                    <td>{$animal->arete}</td>
+                    <td>{$animal->nombre}</td>
+                    <td>{$h->tipo}</td>
+                    <td>{$h->fecha}</td>
+                    <td>".($h->medicamento ?? '—')."</td>
+                    <td>".($h->veterinario ?? '—')."</td>
+                    <td>".($h->dosis ?? '—')."</td>
+                </tr>";
+            }
+        }
+
+        $fecha = now()->format('d/m/Y H:i');
+        $user  = $request->user();
+
+        $html = "
+        <html><head><style>
+            body { font-family: Arial, sans-serif; font-size: 11pt; color: #1e2e1e; }
+            .header { background: #1a5c2a; color: white; padding: 20px; margin-bottom: 20px; }
+            .header h1 { margin: 0; font-size: 18pt; }
+            .header p  { margin: 4px 0 0; font-size: 10pt; opacity: .85; }
+            .meta { margin-bottom: 16px; font-size: 10pt; color: #4a5e4a; }
+            table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+            th { background: #eef7f0; padding: 8px; text-align: left; border-bottom: 2px solid #1a5c2a; font-size: 9pt; text-transform: uppercase; }
+            td { padding: 7px 8px; border-bottom: 1px solid #dde3dd; }
+            tr:nth-child(even) td { background: #f7f9f7; }
+            .footer { margin-top: 20px; font-size: 9pt; color: #8d9e8d; text-align: center; border-top: 1px solid #dde3dd; padding-top: 10px; }
+        </style></head><body>
+            <div class='header'>
+                <h1>YapuUywa SGA</h1>
+                <p>Sistema de Gestión Agropecuaria · Reporte de Historial Sanitario</p>
+            </div>
+            <div class='meta'>
+                <strong>Generado por:</strong> {$user->nombre} &nbsp;|&nbsp;
+                <strong>Fecha:</strong> {$fecha}
+            </div>
+            <table>
+                <thead><tr><th>Arete</th><th>Animal</th><th>Tipo</th><th>Fecha</th><th>Medicamento</th><th>Veterinario</th><th>Dosis</th></tr></thead>
+                <tbody>{$filas}</tbody>
+            </table>
+            <div class='footer'>YapuUywa SGA · Reporte generado el {$fecha}</div>
+        </body></html>";
+
+        $pdf = Pdf::loadHTML($html);
+        return $pdf->download('reporte-historial-yapuuywa.pdf');
     }
 
     public function insumos(Request $request)
     {
-        return response()->json(['success' => true, 'message' => 'Próximamente']);
+        $userId  = $request->user()->id;
+        $insumos = Insumo::where('user_id', $userId)->orderBy('nombre')->get();
+
+        $filas = $insumos->map(fn($i) => "
+            <tr>
+                <td>{$i->nombre}</td>
+                <td>{$i->categoria}</td>
+                <td>{$i->stock_actual} {$i->unidad}</td>
+                <td>{$i->stock_minimo} {$i->unidad}</td>
+                <td style='color:".($i->stock_actual <= $i->stock_minimo ? '#dc3545' : '#1a5c2a')."'>
+                    ".($i->stock_actual <= $i->stock_minimo ? 'CRÍTICO' : 'Normal')."
+                </td>
+                <td>S/ ".number_format($i->precio_unitario ?? 0, 2)."</td>
+            </tr>")->implode('');
+
+        $fecha   = now()->format('d/m/Y H:i');
+        $user    = $request->user();
+        $criticos = $insumos->filter(fn($i) => $i->stock_actual <= $i->stock_minimo)->count();
+
+        $html = "
+        <html><head><style>
+            body { font-family: Arial, sans-serif; font-size: 11pt; color: #1e2e1e; }
+            .header { background: #1a5c2a; color: white; padding: 20px; margin-bottom: 20px; }
+            .header h1 { margin: 0; font-size: 18pt; }
+            .header p  { margin: 4px 0 0; font-size: 10pt; opacity: .85; }
+            .meta { margin-bottom: 16px; font-size: 10pt; color: #4a5e4a; }
+            .alerta { background: #fde8ea; padding: 10px; border-radius: 6px; margin-bottom: 16px; color: #8b1a24; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+            th { background: #eef7f0; padding: 8px; text-align: left; border-bottom: 2px solid #1a5c2a; font-size: 9pt; text-transform: uppercase; }
+            td { padding: 7px 8px; border-bottom: 1px solid #dde3dd; }
+            tr:nth-child(even) td { background: #f7f9f7; }
+            .footer { margin-top: 20px; font-size: 9pt; color: #8d9e8d; text-align: center; border-top: 1px solid #dde3dd; padding-top: 10px; }
+        </style></head><body>
+            <div class='header'>
+                <h1>YapuUywa SGA</h1>
+                <p>Sistema de Gestión Agropecuaria · Reporte de Inventario de Insumos</p>
+            </div>
+            <div class='meta'>
+                <strong>Generado por:</strong> {$user->nombre} &nbsp;|&nbsp;
+                <strong>Fecha:</strong> {$fecha} &nbsp;|&nbsp;
+                <strong>Total insumos:</strong> {$insumos->count()}
+            </div>
+            ".($criticos > 0 ? "<div class='alerta'>⚠️ {$criticos} insumo(s) con stock crítico — requieren reposición urgente</div>" : "")."
+            <table>
+                <thead><tr><th>Nombre</th><th>Categoría</th><th>Stock actual</th><th>Stock mínimo</th><th>Estado</th><th>Precio unit.</th></tr></thead>
+                <tbody>{$filas}</tbody>
+            </table>
+            <div class='footer'>YapuUywa SGA · Reporte generado el {$fecha}</div>
+        </body></html>";
+
+        $pdf = Pdf::loadHTML($html);
+        return $pdf->download('reporte-insumos-yapuuywa.pdf');
     }
 
     private function templateGanado($animales, $user): string
@@ -86,7 +191,7 @@ class ReporteController extends Controller
                 <thead><tr><th>Arete</th><th>Nombre</th><th>Especie</th><th>Raza</th><th>Peso</th><th>Estado</th></tr></thead>
                 <tbody>{$filas}</tbody>
             </table>
-            <div class='footer'>YapuUywa SGA · Reporte generado el {$fecha} · Puno, Perú</div>
+            <div class='footer'>YapuUywa SGA · Reporte generado el {$fecha}</div>
         </body></html>";
     }
 
@@ -154,7 +259,7 @@ class ReporteController extends Controller
                 <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th></tr></thead>
                 <tbody>{$filasG}</tbody>
             </table>
-            <div class='footer'>YapuUywa SGA · Reporte generado el {$fecha} · Puno, Perú</div>
+            <div class='footer'>YapuUywa SGA · Reporte generado el {$fecha}</div>
         </body></html>";
     }
 }
