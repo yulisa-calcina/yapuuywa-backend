@@ -43,11 +43,13 @@ class AuthController extends Controller
             'success'      => true,
             'access_token' => $token,
             'user' => [
-                'id'     => $user->id,
-                'nombre' => $user->nombre,
-                'dni'    => $user->dni,
-                'email'  => $user->email,
-                'rol'    => $user->rol,
+                'id'        => $user->id,
+                'nombre'    => $user->nombre,
+                'dni'       => $user->dni,
+                'email'     => $user->email,
+                'rol'       => $user->rol,
+                'telefono'  => $user->telefono,
+                'comunidad' => $user->comunidad,
             ],
         ]);
     }
@@ -60,16 +62,20 @@ class AuthController extends Controller
             'rol'                   => 'required|in:ganadero,veterinario',
             'password'              => 'required|min:8|confirmed',
             'password_confirmation' => 'required',
+            'telefono'              => 'nullable|string|max:15',
+            'comunidad'             => 'nullable|string|max:100',
         ]);
 
         $user = User::create([
-            'name'     => $request->nombre,
-            'nombre'   => $request->nombre,
-            'dni'      => $request->dni,
-            'email'    => $request->dni . '@yapuuywa.com',
-            'rol'      => $request->rol,
-            'password' => Hash::make($request->password),
-            'activo'   => true,
+            'name'      => $request->nombre,
+            'nombre'    => $request->nombre,
+            'dni'       => $request->dni,
+            'email'     => $request->dni . '@yapuuywa.com',
+            'rol'       => $request->rol,
+            'password'  => Hash::make($request->password),
+            'activo'    => true,
+            'telefono'  => $request->telefono,
+            'comunidad' => $request->comunidad,
         ]);
 
         $user->tokens()->delete();
@@ -79,10 +85,12 @@ class AuthController extends Controller
             'success'      => true,
             'access_token' => $token,
             'user' => [
-                'id'     => $user->id,
-                'nombre' => $user->nombre,
-                'dni'    => $user->dni,
-                'rol'    => $user->rol,
+                'id'        => $user->id,
+                'nombre'    => $user->nombre,
+                'dni'       => $user->dni,
+                'rol'       => $user->rol,
+                'telefono'  => $user->telefono,
+                'comunidad' => $user->comunidad,
             ],
             'message' => 'Cuenta creada correctamente',
         ], 201);
