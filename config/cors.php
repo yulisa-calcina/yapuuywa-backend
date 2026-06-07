@@ -5,10 +5,7 @@ return [
     
     'allowed_methods' => ['*'],    // GET, POST, PUT, DELETE, etc.
     
-    'allowed_origins' => [
-        'http://localhost:5174',   // Tu frontend React
-        'http://localhost:5173',   // Por si cambias de puerto
-    ],
+    'allowed_origins' => ['https://yapuuywa.vercel.app', 'http://localhost:5174'],
     
     'allowed_origins_patterns' => [],
     
