@@ -126,26 +126,3 @@ class AuthController extends Controller
         ]);
     }
 }
-
-    public function me(Request $request): JsonResponse
-    {
-        return response()->json([
-            'success' => true,
-            'data'    => $request->user(),
-        ]);
-    }
-
-    public function logout(Request $request): JsonResponse
-    {
-        $request->user()->currentAccessToken()->delete();
-        return response()->json(['success' => true, 'message' => 'Sesión cerrada.']);
-    }
-
-    public function forgotPassword(Request $request): JsonResponse
-    {
-        return response()->json([
-            'success' => true,
-            'message' => 'Instrucciones enviadas al correo registrado.',
-        ]);
-    }
-}
