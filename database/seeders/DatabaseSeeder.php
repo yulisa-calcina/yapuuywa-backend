@@ -33,5 +33,16 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Actualizar usuarios existentes
+        DB::table('users')->where('dni', '12345678')->update([
+            'nombre' => 'Administrador',
+            'genero' => 'masculino',
+        ]);
+
+        DB::table('users')->where('dni', '73821116')->update([
+            'nombre' => 'Yulisa Calcina',
+            'genero' => 'femenino',
+        ]);
     }
 }
