@@ -48,6 +48,8 @@ class AuthController extends Controller
                 'dni'       => $user->dni,
                 'email'     => $user->email,
                 'rol'       => $user->rol,
+                'genero'    => $user->genero,
+                'foto_url'  => $user->foto_url,
                 'telefono'  => $user->telefono,
                 'comunidad' => $user->comunidad,
             ],
@@ -64,6 +66,8 @@ class AuthController extends Controller
             'password_confirmation' => 'required',
             'telefono'              => 'nullable|string|max:15',
             'comunidad'             => 'nullable|string|max:100',
+            'genero'                => 'nullable|in:masculino,femenino,otro',
+            'foto_url'              => 'nullable|string|max:255',
         ]);
 
         $user = User::create([
@@ -76,6 +80,8 @@ class AuthController extends Controller
             'activo'    => true,
             'telefono'  => $request->telefono,
             'comunidad' => $request->comunidad,
+            'genero'    => $request->genero,
+            'foto_url'  => $request->foto_url,
         ]);
 
         $user->tokens()->delete();
@@ -89,12 +95,37 @@ class AuthController extends Controller
                 'nombre'    => $user->nombre,
                 'dni'       => $user->dni,
                 'rol'       => $user->rol,
+                'genero'    => $user->genero,
+                'foto_url'  => $user->foto_url,
                 'telefono'  => $user->telefono,
                 'comunidad' => $user->comunidad,
             ],
             'message' => 'Cuenta creada correctamente',
         ], 201);
     }
+
+    public function me(Request $request): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'data'    => $request->user(),
+        ]);
+    }
+
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()->currentAccessToken()->delete();
+        return response()->json(['success' => true, 'message' => 'Sesión cerrada.']);
+    }
+
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'Instrucciones enviadas al correo registrado.',
+        ]);
+    }
+}
 
     public function me(Request $request): JsonResponse
     {
