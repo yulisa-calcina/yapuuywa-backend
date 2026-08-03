@@ -19,9 +19,11 @@ use App\Http\Controllers\Api\ProduccionController;
 /* ══════════════════════════════
    RUTAS PÚBLICAS
 ══════════════════════════════ */
-Route::post('/register',        [AuthController::class, 'register']);
-Route::post('/login',           [AuthController::class, 'login']);
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/register',          [AuthController::class, 'register']);
+Route::post('/login',             [AuthController::class, 'login']);
+Route::post('/forgot-password',   [AuthController::class, 'forgotPassword']);
+Route::post('/verify-reset-code', [AuthController::class, 'verifyResetCode']);
+Route::post('/reset-password',    [AuthController::class, 'resetPassword']);
 
 /* ══════════════════════════════
    RUTAS PROTEGIDAS
@@ -29,7 +31,7 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::middleware('auth:sanctum')->group(function () {
 
     /* Perfil */
-    Route::get('/me',    [AuthController::class, 'me']);
+    Route::get('/me',      [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     /* Animales */
@@ -42,18 +44,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('historial/{historial}',     [HistorialController::class, 'destroy']);
 
     /* Alertas */
-    Route::get('/alertas/vacunacion',          [AlertaController::class, 'vacunacion']);
-    Route::get('/alertas/stock',               [AlertaController::class, 'stock']);
-    Route::put('/alertas/{alerta}/atender',    [AlertaController::class, 'atender']);
+    Route::get('/alertas/vacunacion',       [AlertaController::class, 'vacunacion']);
+    Route::get('/alertas/stock',            [AlertaController::class, 'stock']);
+    Route::put('/alertas/{alerta}/atender', [AlertaController::class, 'atender']);
 
     /* Parcelas */
     Route::apiResource('parcelas', ParcelaController::class);
 
     /* Ciclos de cultivo */
-    Route::get('parcelas/{parcela}/ciclos',    [CicloController::class, 'index']);
-    Route::post('parcelas/{parcela}/ciclos',   [CicloController::class, 'store']);
-    Route::put('ciclos/{ciclo}',               [CicloController::class, 'update']);
-    Route::delete('ciclos/{ciclo}',            [CicloController::class, 'destroy']);
+    Route::get('parcelas/{parcela}/ciclos',  [CicloController::class, 'index']);
+    Route::post('parcelas/{parcela}/ciclos', [CicloController::class, 'store']);
+    Route::put('ciclos/{ciclo}',             [CicloController::class, 'update']);
+    Route::delete('ciclos/{ciclo}',          [CicloController::class, 'destroy']);
 
     /* Insumos */
     Route::apiResource('insumos', InsumoController::class);
